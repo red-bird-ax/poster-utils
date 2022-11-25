@@ -20,9 +20,11 @@ func New(name string) Logger {
 }
 
 func (logger *Logger) Warning(err error) {
+    logger.warn.Print(logger.name, " ")
     logger.warn.Println(err.Error())
 }
 
 func (logger *Logger) Error(err error) {
+    logger.warn.Print(logger.name, " ")
     logger.err.Println(err.Error())
 }

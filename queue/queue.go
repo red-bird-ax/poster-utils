@@ -11,23 +11,27 @@ import (
 
 // todo: learn func`s arguments
 
-type Callback func(message *amqp.Delivery) error
+type (
+    Message amqp.Delivery
 
-type Config struct {
-    Name         string
-    User         string
-    Password     string
-    Host         string
-    Port         int
-}
+    Callback func(message *Message) error
 
-type MessageQueue struct {
-    connection   *amqp.Connection
-    channel      *amqp.Channel
-    queue        *amqp.Queue
-    callbacks    map[string]Callback
-    name         string
-}
+    Config struct {
+        Name         string
+        User         string
+        Password     string
+        Host         string
+        Port         int
+    }
+
+    MessageQueue struct {
+        connection   *amqp.Connection
+        channel      *amqp.Channel
+        queue        *amqp.Queue
+        callbacks    map[string]Callback
+        name         string
+    }
+)
 
 func New(config *Config) (*MessageQueue, error) {
     url := fmt.Sprintf(
@@ -149,11 +153,12 @@ func (mq *MessageQueue) Listen() error {
         return err
     }
 
-    for message := range messages {
+    for delivery := range messages {
+        message := Message(delivery)
         key := message.RoutingKey
 
         if callback, ok := mq.callbacks[key]; ok {
-            go func(message *amqp.Delivery, callback Callback) {
+            go func(message *Message, callback Callback) {
                 if err := callback(message); err != nil {
                     _, _ = fmt.Fprintf(os.Stderr, "[Message Queue] %s: %s\n", key, err.Error())
                 }
@@ -165,7 +170,7 @@ func (mq *MessageQueue) Listen() error {
     return nil
 }
 
-func UnmarshalJSON[T any](message *amqp.Delivery) (*T, error) {
+func UnmarshalJSON[T any](message *Message) (*T, error) {
     var body T
     if err := json.Unmarshal(message.Body, &body); err != nil {
         return nil, err

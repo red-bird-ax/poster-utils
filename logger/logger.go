@@ -29,15 +29,12 @@ func (logger *Logger) Error(err error) {
 
 func (logger *Logger) InfoF(format string, args ...any) {
     logger.info.Printf(format, args...)
-    logger.info.Println()
 }
 
 func (logger *Logger) WarningF(format string, args ...any) {
     logger.warn.Printf(format, args...)
-    logger.warn.Println()
 }
 
 func (logger *Logger) ErrorF(format string, args ...any) {
     logger.err.Printf(format, args...)
-    logger.err.Println()
 }

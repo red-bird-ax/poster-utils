@@ -164,3 +164,11 @@ func (mq *MessageQueue) Listen() error {
     }
     return nil
 }
+
+func UnmarshalJSON[T any](message *amqp.Delivery) (*T, error) {
+    var body T
+    if err := json.Unmarshal(message.Body, &body); err != nil {
+        return nil, err
+    }
+    return &body, nil
+}

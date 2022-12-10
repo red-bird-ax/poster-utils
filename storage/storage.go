@@ -12,12 +12,17 @@ import (
 
 const ApiURL = "https://storage.cloud.google.com"
 
+type Config struct {
+    BucketName string
+    ProjectID  string
+}
+
 type Storage struct {
     client     *storage.Client
     bucketName string
 }
 
-func New(bucketName, projectID string) (*Storage, error) {
+func New(config *Config) (*Storage, error) {
     ctx := context.Background()
 
     client, err := storage.NewClient(ctx)
@@ -25,12 +30,12 @@ func New(bucketName, projectID string) (*Storage, error) {
         return nil, err
     }
 
-    bucket := client.Bucket(bucketName)
+    bucket := client.Bucket(config.BucketName)
 
     switch _, err := bucket.Attrs(ctx); err {
     case storage.ErrBucketNotExist:
-        _, _ = fmt.Fprintf(os.Stderr,"[Cloud Storage] Creating bucket '%s'...\n", bucketName)
-        if err = bucket.Create(ctx, projectID, nil); err != nil {
+        _, _ = fmt.Fprintf(os.Stderr,"[Cloud Storage] Creating bucket '%s'...\n", config.BucketName)
+        if err = bucket.Create(ctx, config.ProjectID, nil); err != nil {
             return nil, err
         }
         fallthrough
@@ -38,7 +43,7 @@ func New(bucketName, projectID string) (*Storage, error) {
     case nil:
         return &Storage{
             client:     client,
-            bucketName: bucketName,
+            bucketName: config.BucketName,
         }, nil
 
     default:
